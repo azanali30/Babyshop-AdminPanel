@@ -1,0 +1,32 @@
+name: my_app
+description: A new Flutter project
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  charts_flutter: ^0.12.0
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_storage: ^13.0.4
+  firebase_messaging: ^16.0.4
+  fl_chart: ^0.69.0
+  image_picker: ^0.8.7+5
+  google_sign_in: ^6.1.0
+  iconsax: ^0.0.8 # <-- add this line
+  mailer: ^5.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

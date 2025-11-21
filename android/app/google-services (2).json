@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "550822266542",
+    "firebase_url": "https://babyshophub-fc801-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "babyshophub-fc801",
+    "storage_bucket": "babyshophub-fc801.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550822266542:android:1624d70dce31269a8bcf3f",
+        "android_client_info": {
+          "package_name": "com.azanali.babyshophub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "550822266542-fphmd082s44msplsb2gplhkimgs336dq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlf1dpkBVWDHxJVIuny32SH1Eyod3cW1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550822266542-fphmd082s44msplsb2gplhkimgs336dq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "550822266542-u90kgj75p9s4ascisjs35u4lcvb6ettp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.babyshophub"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550822266542:android:c86048eb5d3096558bcf3f",
+        "android_client_info": {
+          "package_name": "com.example.babyshophub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "550822266542-fphmd082s44msplsb2gplhkimgs336dq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlf1dpkBVWDHxJVIuny32SH1Eyod3cW1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550822266542-fphmd082s44msplsb2gplhkimgs336dq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "550822266542-u90kgj75p9s4ascisjs35u4lcvb6ettp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.babyshophub"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
