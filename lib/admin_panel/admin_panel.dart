@@ -3,8 +3,7 @@ import '/services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth/login_screen.dart';
-
-
+import 'admin_profile_page.dart'; // Profile page import karo
 
 class AdminPanel extends StatefulWidget {
   @override
@@ -13,7 +12,7 @@ class AdminPanel extends StatefulWidget {
 
 class _AdminPanelState extends State<AdminPanel> {
   final FirestoreService firestoreService = FirestoreService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;  // <- Ye line honi chahiye
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   int _currentIndex = 0;
 
   final List<Widget> _tabs = [
@@ -43,11 +42,8 @@ class _AdminPanelState extends State<AdminPanel> {
         backgroundColor: Color(0xFF6A8EAE),
         elevation: 0,
         actions: [
-          // Logout Button
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _showLogoutDialog(context),
-          ),
+          // Profile Dropdown Button - YEH NAYA CODE HAI
+          _buildProfileDropdown(),
         ],
       ),
       body: Container(
@@ -67,58 +63,102 @@ class _AdminPanelState extends State<AdminPanel> {
     );
   }
 
-void _showLogoutDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Row(
-        children: [
-          Icon(Icons.logout, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('Logout Confirmation'),
-        ],
+  // NAYA PROFILE DROPDOWN WIDGET
+  Widget _buildProfileDropdown() {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.account_circle, color: Colors.white, size: 28),
+      offset: Offset(0, 50),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      content: Text('Are you sure you want to logout from Admin Panel?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+      onSelected: (value) {
+        if (value == 'profile') {
+          // Profile page par navigate karo
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AdminProfilePage()),
+          );
+        } else if (value == 'logout') {
+          _showLogoutDialog(context);
+        }
+      },
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(Icons.person, color: Color(0xFF6A8EAE)),
+              SizedBox(width: 12),
+              Text('Profile Settings',
+                  style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            try {
-              await _auth.signOut();  // Firebase se logout
-              
-              // Dialog close
-              Navigator.pop(context);
-
-              // Navigate to LoginScreen and remove all previous routes
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => LoginScreen()),
-                (route) => false,
-              );
-
-            } catch (e) {
-              // Agar koi error aaye to show snackbar
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Logout failed: ${e.toString()}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF6A8EAE)),
-          child: Text('Logout'),
+        PopupMenuItem<String>(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.red),
+              SizedBox(width: 12),
+              Text('Logout',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500, color: Colors.red)),
+            ],
+          ),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.logout, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Logout Confirmation'),
+          ],
+        ),
+        content: Text('Are you sure you want to logout from Admin Panel?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _auth.signOut();  // Firebase se logout
+                
+                // Dialog close
+                Navigator.pop(context);
 
+                // Navigate to LoginScreen and remove all previous routes
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                  (route) => false,
+                );
 
+              } catch (e) {
+                // Agar koi error aaye to show snackbar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Logout failed: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF6A8EAE)),
+            child: Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildBottomNavBar() {
     return Container(
