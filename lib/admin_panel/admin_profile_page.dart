@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminProfilePage extends StatefulWidget {
   @override
@@ -8,22 +9,54 @@ class AdminProfilePage extends StatefulWidget {
 
 class _AdminProfilePageState extends State<AdminProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  
   bool _isLoading = false;
   String _errorMessage = '';
+  String _adminInitial = 'A';
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentUser();
+    _loadAdminData();
   }
 
-  void _loadCurrentUser() {
-    final user = _auth.currentUser;
-    if (user != null) {
-      _emailController.text = user.email ?? '';
+  void _loadAdminData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // Firebase Auth se email
+        _emailController.text = user.email ?? '';
+        
+        // Firestore se admin data
+        final adminDoc = await _firestore
+            .collection('admins')
+            .doc(user.uid)
+            .get();
+
+        if (adminDoc.exists && adminDoc.data() != null) {
+          final adminData = adminDoc.data()!;
+          final String name = adminData['name'] ?? '';
+          _nameController.text = name;
+          setState(() {
+            _adminInitial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+          });
+        } else {
+          // Agar Firestore mein data nahi hai
+          setState(() {
+            _adminInitial = user.email != null && user.email!.isNotEmpty 
+                ? user.email![0].toUpperCase() 
+                : 'A';
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading admin data: $e');
     }
   }
 
@@ -41,6 +74,22 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
           _isLoading = false;
         });
         return;
+      }
+
+      // Name update in Firestore
+      if (_nameController.text.isNotEmpty) {
+        await _firestore
+            .collection('admins')
+            .doc(user.uid)
+            .set({
+              'name': _nameController.text,
+              'email': _emailController.text,
+              'updatedAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+        
+        setState(() {
+          _adminInitial = _nameController.text[0].toUpperCase();
+        });
       }
 
       // Email update
@@ -110,7 +159,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            // Profile Header
+            // Profile Header with Avatar
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -120,8 +169,15 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                   children: [
                     CircleAvatar(
                       backgroundColor: Color(0xFFFFD6DC),
-                      child: Icon(Icons.admin_panel_settings, color: Color(0xFF6A8EAE), size: 30),
-                      radius: 25,
+                      radius: 30,
+                      child: Text(
+                        _adminInitial,
+                        style: TextStyle(
+                          color: Color(0xFF6A8EAE),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     SizedBox(width: 12),
                     Expanded(
@@ -129,11 +185,11 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Admin Settings',
+                            'Admin Profile',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            'Update your email and password',
+                            'Update your profile information',
                             style: TextStyle(color: Colors.grey),
                           ),
                         ],
@@ -145,6 +201,24 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
             ),
             
             SizedBox(height: 20),
+            
+            // Name Field
+            Card(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person, color: Color(0xFF6A8EAE)),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
             
             // Email Field
             Card(
@@ -259,37 +333,6 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
             ),
             
             SizedBox(height: 20),
-            
-            // Info Card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info, color: Color(0xFF6A8EAE)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Note:',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6A8EAE)),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '• Email changes require verification\n'
-                      '• Password must be at least 6 characters\n'
-                      '• Leave password fields empty to keep current password',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -298,6 +341,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
