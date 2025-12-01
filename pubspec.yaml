@@ -23,6 +23,8 @@ dependencies:
   google_sign_in: ^6.1.0
   iconsax: ^0.0.8 # <-- add this line
   mailer: ^5.0.0
+  lottie: ^3.0.0
+  flutter_facebook_auth: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +32,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/lottie/splash.json
+    - assets/images/3.JPG
+    - assets/images/4.JPG
+    - assets/images/9.JPG

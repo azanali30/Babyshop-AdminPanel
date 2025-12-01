@@ -10,12 +10,13 @@ class AdminProfilePage extends StatefulWidget {
 class _AdminProfilePageState extends State<AdminProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _isLoading = false;
   String _errorMessage = '';
   String _adminInitial = 'A';
@@ -26,18 +27,17 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     _loadAdminData();
   }
 
+  /// Fetch admin data from Firestore
   void _loadAdminData() async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        // Firebase Auth se email
+        // Load email from Firebase Auth
         _emailController.text = user.email ?? '';
-        
-        // Firestore se admin data
-        final adminDoc = await _firestore
-            .collection('admins')
-            .doc(user.uid)
-            .get();
+
+        // Load name from Firestore
+        final adminDoc =
+            await _firestore.collection('admins').doc(user.uid).get();
 
         if (adminDoc.exists && adminDoc.data() != null) {
           final adminData = adminDoc.data()!;
@@ -47,10 +47,9 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
             _adminInitial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
           });
         } else {
-          // Agar Firestore mein data nahi hai
           setState(() {
-            _adminInitial = user.email != null && user.email!.isNotEmpty 
-                ? user.email![0].toUpperCase() 
+            _adminInitial = user.email != null && user.email!.isNotEmpty
+                ? user.email![0].toUpperCase()
                 : 'A';
           });
         }
@@ -60,6 +59,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     }
   }
 
+  /// Update profile data
   Future<void> _updateProfile() async {
     setState(() {
       _isLoading = true;
@@ -76,28 +76,26 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         return;
       }
 
-      // Name update in Firestore
+      // Update name in Firestore
       if (_nameController.text.isNotEmpty) {
-        await _firestore
-            .collection('admins')
-            .doc(user.uid)
-            .set({
-              'name': _nameController.text,
-              'email': _emailController.text,
-              'updatedAt': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
-        
+        await _firestore.collection('admins').doc(user.uid).set({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
         setState(() {
           _adminInitial = _nameController.text[0].toUpperCase();
         });
       }
 
-      // Email update
-      if (_emailController.text.isNotEmpty && _emailController.text != user.email) {
+      // Update email in Firebase Auth
+      if (_emailController.text.isNotEmpty &&
+          _emailController.text != user.email) {
         await user.verifyBeforeUpdateEmail(_emailController.text);
       }
 
-      // Password update
+      // Update password
       if (_passwordController.text.isNotEmpty) {
         if (_passwordController.text != _confirmPasswordController.text) {
           setState(() {
@@ -116,7 +114,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         await user.updatePassword(_passwordController.text);
       }
 
-      // Success
+      // Success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Profile updated successfully!'),
@@ -127,7 +125,6 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
       // Clear password fields
       _passwordController.clear();
       _confirmPasswordController.clear();
-
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -137,6 +134,15 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -159,10 +165,11 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            // Profile Header with Avatar
+            // Profile Header
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Row(
@@ -186,7 +193,8 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                         children: [
                           Text(
                             'Admin Profile',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Update your profile information',
@@ -199,84 +207,24 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                 ),
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
-            // Name Field
-            Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person, color: Color(0xFF6A8EAE)),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            
-            // Email Field
-            Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: Color(0xFF6A8EAE)),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            
-            // Password Field
-            Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    prefixIcon: Icon(Icons.lock, color: Color(0xFF6A8EAE)),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            
-            // Confirm Password Field
-            Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    prefixIcon: Icon(Icons.lock_outline, color: Color(0xFF6A8EAE)),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            
-            // Error Message
+
+            // Name
+            _buildTextField(_nameController, 'Full Name', Icons.person),
+
+            // Email
+            _buildTextField(_emailController, 'Email', Icons.email),
+
+            // Password
+            _buildTextField(_passwordController, 'New Password', Icons.lock,
+                obscureText: true),
+
+            // Confirm Password
+            _buildTextField(
+                _confirmPasswordController, 'Confirm New Password', Icons.lock,
+                obscureText: true),
+
             if (_errorMessage.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -300,21 +248,20 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                   ],
                 ),
               ),
-            
+
             SizedBox(height: 30),
-            
+
             // Update Button
-            Container(
+            SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _updateProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF6A8EAE),
+                  backgroundColor: Color(0xFFF7C9D1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _isLoading
                     ? SizedBox(
@@ -327,11 +274,12 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                       )
                     : Text(
                         'Update Profile',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
-            
+
             SizedBox(height: 20),
           ],
         ),
@@ -339,12 +287,26 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     );
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  // Helper widget for TextFields
+  Widget _buildTextField(TextEditingController controller, String label,
+      IconData icon,
+      {bool obscureText = false}) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            labelText: label,
+            prefixIcon: Icon(icon, color: Color(0xFFF7C9D1)),
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
   }
 }
